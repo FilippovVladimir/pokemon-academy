@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>ПокеАкадемия — учим всё о покемонах</title>
+  <meta name="description" content="Покедекс, квизы, поколения, игры, тренеры, таблица типов и гайд по VGC — всё для изучения вселенной покемонов.">
+  <meta name="theme-color" content="#e3350d">
+  <link rel="icon" href="assets/icon.svg" type="image/svg+xml">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="#/">
+      <img src="assets/icon.svg" alt="" width="30" height="30">
+      <span>ПокеАкадемия</span>
+    </a>
+    <button class="menu-btn" id="menuBtn" aria-label="Меню" aria-expanded="false">
+      <span></span><span></span><span></span>
+    </button>
+    <nav class="nav" id="nav">
+      <a href="#/pokedex" data-nav="pokedex">Покедекс</a>
+      <a href="#/quiz" data-nav="quiz">Квизы</a>
+      <a href="#/games" data-nav="games">Игры и поколения</a>
+      <a href="#/trainers" data-nav="trainers">Тренеры</a>
+      <a href="#/types" data-nav="types">Типы</a>
+      <a href="#/team" data-nav="team">Команда</a>
+      <a href="#/guides" data-nav="guides">Гайды</a>
+      <a href="#/progress" data-nav="progress">Прогресс</a>
+    </nav>
+  </header>
+
+  <main id="app" class="container" tabindex="-1">
+    <div class="loader"><div class="pokeball spin"></div></div>
+  </main>
+
+  <nav class="tabbar" id="tabbar">
+    <a href="#/" data-nav="home"><span class="ti">🏠</span>Главная</a>
+    <a href="#/pokedex" data-nav="pokedex"><span class="ti">📕</span>Покедекс</a>
+    <a href="#/quiz" data-nav="quiz"><span class="ti">❓</span>Квизы</a>
+    <a href="#/games" data-nav="games"><span class="ti">🎮</span>Игры</a>
+    <a href="#/more" data-nav="more"><span class="ti">☰</span>Ещё</a>
+  </nav>
+
+  <footer class="footer container">
+    <p>Фанатский учебный проект. Pokémon и все названия © Nintendo, Creatures Inc., GAME FREAK inc. Данные и изображения — <a href="https://pokeapi.co" target="_blank" rel="noopener">PokeAPI</a>.</p>
+  </footer>
+
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>

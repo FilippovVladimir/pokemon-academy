@@ -1,5 +1,5 @@
 import { DEX } from '../dex.js';
-import { $ } from '../util.js';
+import { $, esc } from '../util.js';
 import { GENERATIONS } from '../data/games.js';
 import { store } from '../store.js';
 import { QUIZZES } from './quiz.js';
@@ -25,7 +25,7 @@ export function render(app) {
   ];
 
   app.innerHTML = `
-  <div class="section-head"><h1>Мой прогресс</h1>${store.cloudEnabled ? `<a class="btn small" href="#/profile">${store.user() ? '👤 ' + store.user() + ' · лидеры' : '👤 Войти, чтобы сохранить в облаке'}</a>` : ''}</div>
+  <div class="section-head"><h1>Мой прогресс</h1><a class="btn small" href="#/profile">👤 ${esc(store.player().name)} · сменить игрока</a></div>
   <div class="grid cols-2">
     <div class="card">
       <div class="muted small" style="font-weight:700">ИЗУЧЕНО ПОКЕМОНОВ</div>

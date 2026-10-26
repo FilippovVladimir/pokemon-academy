@@ -48,17 +48,13 @@ $('#menuBtn').addEventListener('click', () => {
   $('#menuBtn').setAttribute('aria-expanded', String(open));
 });
 
-// Кнопка профиля в шапке; при входе/выходе перерисовываем страницу с новым прогрессом
-let lastUser = store.user();
+// Кнопка игрока в шапке; при переключении игрока перерисовываем страницу с его прогрессом
+let lastPlayer = store.player().id;
 const userBtn = $('#userBtn');
-const drawUser = () => {
-  userBtn.hidden = !store.cloudEnabled;
-  const u = store.user(), s = store.sync().status;
-  userBtn.textContent = u ? `${s === 'error' ? '⚠️' : s === 'saving' || s === 'loading' ? '⏳' : '👤'} ${u}` : '👤 Войти';
-};
+const drawUser = () => { userBtn.textContent = '👤 ' + store.player().name; };
 store.onChange(() => {
   drawUser();
-  if (store.user() !== lastUser) { lastUser = store.user(); route(); }
+  if (store.player().id !== lastPlayer) { lastPlayer = store.player().id; route(); }
 });
 drawUser();
 

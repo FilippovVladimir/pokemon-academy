@@ -43,7 +43,7 @@ function renderHub(app) {
   app.innerHTML = `
   <h1>Квизы</h1>
   <p class="muted">Раунд — ${ROUND} вопросов. В каждом квизе можно играть для удовольствия, проходить только новое или учить с повторением ошибок.
-    ${store.user() ? '' : '<a href="#/profile">Войди</a>, чтобы прогресс сохранялся в облаке.'}</p>
+    Играешь как <a href="#/profile">👤 ${esc(store.player().name)}</a>.</p>
   <div class="grid cols-3">${Object.entries(QUIZZES).map(([id, q]) => {
     const s = store.quizStats(id), it = store.itemSummary(id);
     return `<a class="card tile" href="#/quiz/${id}"><div class="ico">${q.icon}</div><h3>${q.title}</h3><p>${q.desc}</p>

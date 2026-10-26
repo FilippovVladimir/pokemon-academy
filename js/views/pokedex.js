@@ -1,6 +1,6 @@
 import { DEX } from '../dex.js';
 import { $, $$, esc, img, num, typeBadges, norm } from '../util.js';
-import { TYPES, TYPE_RU } from '../data/types.js';
+import { TYPES, typeName } from '../data/types.js';
 import { GENERATIONS } from '../data/games.js';
 import { store } from '../store.js';
 
@@ -41,7 +41,7 @@ export function render(app) {
   </div>
   <div class="dex-controls">
     <input type="search" id="q" placeholder="Поиск по имени или номеру…" value="${esc(f.q)}" autocomplete="off">
-    <select id="type"><option value="">Все типы</option>${TYPES.map(t => `<option value="${t}" ${f.type === t ? 'selected' : ''}>${TYPE_RU[t]}</option>`).join('')}</select>
+    <select id="type"><option value="">Все типы</option>${TYPES.map(t => `<option value="${t}" ${f.type === t ? 'selected' : ''}>${typeName(t)}</option>`).join('')}</select>
     <select id="sort">
       ${[['id', 'По номеру'], ['name', 'По имени'], ['bst', 'По сумме статов'], ['spe', 'По скорости'], ['atk', 'По атаке']]
         .map(([v, l]) => `<option value="${v}" ${f.sort === v ? 'selected' : ''}>${l}</option>`).join('')}

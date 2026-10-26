@@ -1,6 +1,6 @@
 import { DEX, get } from '../dex.js';
 import { $, $$, esc, art, sprite, img, pick, shuffle, sample, norm, lev, typeBadge, typeBadges, fmtMult, trainerSprite, STAT_NAMES } from '../util.js';
-import { TYPES, TYPE_RU, EFF, mult, defenseProfile } from '../data/types.js';
+import { TYPES, typeName, EFF, mult, defenseProfile } from '../data/types.js';
 import { GENERATIONS, ALL_GAMES } from '../data/games.js';
 import { TRAINERS, ROLE_RU, REGIONS_ORDER } from '../data/trainers.js';
 import { store } from '../store.js';
@@ -231,7 +231,7 @@ function renderOptions(qq, done) {
 
 function renderTypePick(qq, done) {
   const box = $('#answers'); const chosen = new Set();
-  box.innerHTML = `<div class="type-pick">${TYPES.map(t => `<span class="type t-${t}" data-t="${t}">${TYPE_RU[t]}</span>`).join('')}</div>
+  box.innerHTML = `<div class="type-pick">${TYPES.map(t => `<span class="type t-${t}" data-t="${t}">${typeName(t)}</span>`).join('')}</div>
     <div style="margin-top:14px"><button class="btn primary" id="check" disabled>Проверить</button></div>`;
   const pickEl = $('.type-pick', box);
   pickEl.addEventListener('click', e => {
@@ -335,7 +335,7 @@ function qMatchup(want) {
     key: `${a}>${def.join('+')}`,
     html: `<div class="q-text">Атака ${typeBadge(a)} по покемону типа ${typeBadges(def)}</div><p class="muted">Какой множитель урона?</p>`,
     options: opts.map(o => ({ label: '×' + fmtMult(o), ok: o === m })),
-    explain: def.length > 1 ? `${TYPE_RU[a]} → ${TYPE_RU[def[0]]} ×${fmtMult(EFF[a][def[0]])}, → ${TYPE_RU[def[1]]} ×${fmtMult(EFF[a][def[1]])}. Итого ×${fmtMult(m)}` : '',
+    explain: def.length > 1 ? `${typeName(a)} → ${typeName(def[0])} ×${fmtMult(EFF[a][def[0]])}, → ${typeName(def[1])} ×${fmtMult(EFF[a][def[1]])}. Итого ×${fmtMult(m)}` : '',
   };
 }
 

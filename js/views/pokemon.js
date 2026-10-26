@@ -1,6 +1,7 @@
-import { DEX, get, evoStages, fetchSpecies } from '../dex.js';
+import { get, evoStages, fetchSpecies, genus, dexEntry } from '../dex.js';
+import { DEX_SWITCH, TYPE_SWITCH, bindSwitches } from './settings.js';
 import { $, esc, art, artShiny, cry, img, num, typeBadge, typeBadges, fmtMult, STAT_NAMES, STAT_COLORS } from '../util.js';
-import { defenseProfile, TYPES, TYPE_RU, EFF } from '../data/types.js';
+import { defenseProfile, TYPES, EFF } from '../data/types.js';
 import { GENERATIONS } from '../data/games.js';
 import { store } from '../store.js';
 
@@ -15,6 +16,7 @@ export function render(app, [idStr]) {
   const stab = TYPES.filter(d => p.t.some(a => EFF[a][d] === 2));
   const c1 = `var(--${p.t[0]})`, c2 = `var(--${p.t[1] || p.t[0]})`;
   const team = store.team();
+  const entry = dexEntry(p);
 
   const evo = evoStages(p);
   const evoHtml = evo.length > 1 || evo[0].length > 1 ? `<div class="evo">${evo.map(lvl =>
@@ -32,7 +34,7 @@ export function render(app, [idStr]) {
       <div class="art-bg" style="background:linear-gradient(160deg, color-mix(in srgb, ${c1} 35%, transparent), color-mix(in srgb, ${c2} 20%, transparent))">
         <img class="art" id="art" src="${art(p.id)}" alt="${esc(p.n)}">
       </div>
-      <div class="muted small" style="margin-top:10px">${num(p.id)} · ${esc(p.g)}</div>
+      <div class="muted small" style="margin-top:10px">${num(p.id)} · ${esc(genus(p))}</div>
       <h1 style="margin:4px 0">${esc(p.n)}</h1>
       <div class="muted small">${esc(p.jp)} (${esc(p.ro)})</div>
       <div class="types" style="justify-content:center;margin:10px 0">${p.t.map(typeBadge).join('')}</div>
@@ -46,8 +48,8 @@ export function render(app, [idStr]) {
     </div>
     <div class="grid" style="align-content:start">
       <div class="card">
-        <h3>Описание</h3>
-        <p id="flavor" class="muted">Загрузка…</p>
+        <div class="section-head" style="margin-bottom:6px"><h3 style="margin:0">Описание</h3>${DEX_SWITCH()}</div>
+        <p id="flavor">${entry ? esc(entry.text) + (entry.version ? ` <span class="tag">${esc(entry.version)}</span>` : '') : '<span class="muted">Описание отсутствует.</span>'}</p>
         <div class="kv">
           <div><span>Поколение</span><a href="#/games/${p.gen}">${p.gen} · ${gen.region}</a></div>
           <div><span>Рост</span>${(p.h / 10).toFixed(1)} м</div>
@@ -63,7 +65,7 @@ export function render(app, [idStr]) {
         <div class="stat"><span><b>Сумма</b></span><b>${p.bst}</b><span class="muted small">${bstLabel(p.bst)}</span></div>
       </div>
       <div class="card">
-        <h3>Получает урон от типов</h3>
+        <div class="section-head" style="margin-bottom:6px"><h3 style="margin:0">Получает урон от типов</h3>${TYPE_SWITCH()}</div>
         ${groups.map(([m, ts]) => `<div class="eff-row"><b>×${fmtMult(m)}</b>${typeBadges(ts)}</div>`).join('')}
         <h3 style="margin-top:14px">STAB-атаки супер-эффективны против</h3>
         ${stab.length ? typeBadges(stab) : '<span class="muted">—</span>'}
@@ -75,6 +77,7 @@ export function render(app, [idStr]) {
     </div>
   </div>`;
 
+  bindSwitches(app);
   let shiny = false;
   $('#shiny').onclick = () => { shiny = !shiny; $('#art').src = shiny ? artShiny(p.id) : art(p.id); $('#shiny').classList.toggle('primary', shiny); };
   $('#cry').onclick = () => { const a = new Audio(cry(p.id)); a.volume = 0.4; a.play().catch(() => { $('#cry').textContent = '🔇 Нет звука'; }); };
@@ -82,12 +85,12 @@ export function render(app, [idStr]) {
 
   fetchSpecies(p.id).then(s => {
     const fl = $('#flavor'); if (!fl) return;
-    fl.textContent = s.flavor || '—';
-    fl.insertAdjacentHTML('beforeend', s.version ? ` <span class="tag">${esc(s.version)}</span>` : '');
     $('#extra1').innerHTML = `<span>Шанс поимки</span>${s.capture} / 255`;
     $('#extra2').innerHTML = `<span>Группы яиц</span>${s.egg.map(esc).join(', ')}`;
     if (s.varieties.length) fl.insertAdjacentHTML('afterend', `<p class="small muted">Другие формы: ${s.varieties.map(esc).join(', ')}</p>`);
-  }).catch(() => { const fl = $('#flavor'); if (fl) fl.textContent = 'Описание недоступно офлайн.'; });
+  }).catch(() => {
+    $('#extra1')?.replaceChildren(); $('#extra2')?.replaceChildren();
+  });
 }
 
 function bstLabel(b) {

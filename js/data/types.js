@@ -1,4 +1,6 @@
 // Таблица типов (поколение 6+). EFF[атакующий][защитник] = множитель (по умолчанию 1).
+import { settings } from '../settings.js';
+
 export const TYPES = ['normal','fire','water','electric','grass','ice','fighting','poison','ground',
   'flying','psychic','bug','rock','ghost','dragon','dark','steel','fairy'];
 
@@ -9,6 +11,10 @@ export const TYPE_RU = {
   dark: 'Тёмный', steel: 'Стальной', fairy: 'Фея',
 };
 export const TYPE_EN = Object.fromEntries(TYPES.map(t => [t, t[0].toUpperCase() + t.slice(1)]));
+
+// Название типа на выбранном в настройках языке и на другом (для подсказки)
+export const typeName = t => (settings.get('typeLang') === 'ru' ? TYPE_RU : TYPE_EN)[t];
+export const typeAlt = t => (settings.get('typeLang') === 'ru' ? TYPE_EN : TYPE_RU)[t];
 
 const CHART = {
   normal:   { x05: ['rock','steel'], x0: ['ghost'] },

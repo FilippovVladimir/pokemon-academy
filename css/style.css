@@ -327,3 +327,6 @@ table.cov { border-collapse: collapse; width: 100%; font-size: .85rem; }
 .user-btn[hidden] { display: none; }
 .user-btn:not([hidden]) + .menu-btn, .user-btn:not([hidden]) + .menu-btn + .nav { margin-left: 0; }
 @media (min-width: 1101px) { .user-btn { order: 3; margin-left: 8px; } .nav { margin-left: auto; } }
+
+.lang-switch { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.lang-switch .chip { padding: 4px 10px; font-size: .8rem; }

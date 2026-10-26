@@ -1,6 +1,7 @@
 import { $, $$, typeBadge, typeBadges, fmtMult, img, esc } from '../util.js';
-import { TYPES, TYPE_RU, EFF, defenseProfile, TYPE_TIPS } from '../data/types.js';
+import { TYPES, typeName, EFF, defenseProfile, TYPE_TIPS } from '../data/types.js';
 import { DEX } from '../dex.js';
+import { TYPE_SWITCH, bindSwitches } from './settings.js';
 
 const sel = new Set(['fire']);
 
@@ -8,6 +9,7 @@ export function render(app) {
   app.innerHTML = `
   <div class="section-head"><h1>Типы покемонов</h1><a class="btn small" href="#/quiz/matchup">Квиз по типам →</a></div>
   <p class="muted">18 типов — сердце боевой системы. Строки — тип атаки, столбцы — тип защищающегося покемона.</p>
+  ${TYPE_SWITCH()}
   <div class="legend">
     <span><i style="background:#3fae5a"></i>×2 супер-эффективно</span>
     <span><i style="background:#e2584c"></i>×½ не очень эффективно</span>
@@ -18,14 +20,14 @@ export function render(app) {
       <thead><tr><th>АТК ↓ / ЗАЩ →</th>${TYPES.map(t => `<th>${typeBadge(t)}</th>`).join('')}</tr></thead>
       <tbody>${TYPES.map(a => `<tr><th>${typeBadge(a)}</th>${TYPES.map(d => {
         const m = EFF[a][d]; const cls = m === 2 ? 'x2' : m === 0.5 ? 'x05' : m === 0 ? 'x0' : '';
-        return `<td class="${cls}" title="${TYPE_RU[a]} → ${TYPE_RU[d]}: ×${fmtMult(m)}">${m === 1 ? '' : fmtMult(m)}</td>`;
+        return `<td class="${cls}" title="${typeName(a)} → ${typeName(d)}: ×${fmtMult(m)}">${m === 1 ? '' : fmtMult(m)}</td>`;
       }).join('')}</tr>`).join('')}</tbody>
     </table>
   </div>
 
   <h2>Калькулятор защиты</h2>
   <p class="muted">Выбери один или два типа — узнаешь все слабости и сопротивления.</p>
-  <div class="type-pick" id="pick">${TYPES.map(t => `<span class="type t-${t} ${sel.has(t) ? 'on' : ''}" data-t="${t}">${TYPE_RU[t]}</span>`).join('')}</div>
+  <div class="type-pick" id="pick">${TYPES.map(t => `<span class="type t-${t} ${sel.has(t) ? 'on' : ''}" data-t="${t}">${typeName(t)}</span>`).join('')}</div>
   <div class="grid cols-2" style="margin-top:14px">
     <div class="card" id="calc"></div>
     <div class="card" id="examples"></div>
@@ -40,6 +42,7 @@ export function render(app) {
       <div class="small" style="margin-top:6px"><b>Слаб к:</b> ${typeBadges(weak)}</div></div>`;
   }).join('')}</div>`;
 
+  bindSwitches(app);
   const draw = () => {
     const ts = [...sel];
     if (!ts.length) { $('#calc').innerHTML = '<p class="muted">Выбери тип.</p>'; $('#examples').innerHTML = ''; return; }

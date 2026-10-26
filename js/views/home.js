@@ -1,4 +1,4 @@
-import { DEX } from '../dex.js';
+import { DEX, genus } from '../dex.js';
 import { art, num, typeBadges, dayIndex, esc } from '../util.js';
 import { store } from '../store.js';
 
@@ -33,7 +33,7 @@ export function render(app) {
       <div class="potd">
         <img src="${art(p.id)}" alt="${esc(p.n)}">
         <div>
-          <div class="muted small">${num(p.id)} · ${esc(p.g)}</div>
+          <div class="muted small">${num(p.id)} · ${esc(genus(p))}</div>
           <h2 style="margin:2px 0 6px">${esc(p.n)}</h2>
           ${typeBadges(p.t)}
           <p class="small muted" style="margin-top:8px">Поколение ${p.gen} · сумма статов ${p.bst}</p>

@@ -1,4 +1,4 @@
-import { TYPE_RU } from './data/types.js';
+import { typeName, typeAlt } from './data/types.js';
 
 const SPR = 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon';
 export const art = id => `${SPR}/other/official-artwork/${id}.png`;
@@ -13,7 +13,7 @@ export const $$ = (sel, root = document) => [...root.querySelectorAll(sel)];
 export const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 export const num = id => '#' + String(id).padStart(4, '0');
 
-export const typeBadge = t => `<span class="type t-${t}">${TYPE_RU[t]}</span>`;
+export const typeBadge = t => `<span class="type t-${t}" title="${typeAlt(t)}">${typeName(t)}</span>`;
 export const typeBadges = ts => `<span class="types">${ts.map(typeBadge).join('')}</span>`;
 
 // Спрайт с запасным вариантом: если маленького нет, грузим арт

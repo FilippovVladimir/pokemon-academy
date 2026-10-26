@@ -5,8 +5,13 @@ export const ROLE_RU = {
   villain: 'Босс злодеев', prof: 'Профессор', kahuna: 'Кахуна', captain: 'Капитан испытаний',
 };
 
+// Тренеры с явной специализацией на одном типе (у остальных тип — только цвет карточки)
+const SPEC_ROLES = ['gym', 'e4', 'kahuna', 'captain'];
+const SPEC_NAMES = ['Lance', 'Wallace', 'Steven', 'Iris'];
+
 const T = (name, ru, role, type, region, games, city, ace, sprite, note = '') =>
-  ({ name, ru, role, type, region, games, city, ace, sprite: sprite ?? name.toLowerCase().replace(/[^a-z]/g, ''), note });
+  ({ name, ru, role, type, region, games, city, ace, sprite: sprite ?? name.toLowerCase().replace(/[^a-z]/g, ''), note,
+     spec: SPEC_ROLES.includes(role) || SPEC_NAMES.includes(name) });
 
 export const TRAINERS = [
   // Канто
@@ -22,7 +27,7 @@ export const TRAINERS = [
   T('Bruno', 'Бруно', 'e4', 'fighting', 'Канто', 'Red/Blue/Yellow, FRLG, Gold/Silver', 'Indigo Plateau', 68),
   T('Agatha', 'Агата', 'e4', 'ghost', 'Канто', 'Red/Blue/Yellow, FRLG', 'Indigo Plateau', 94, 'agatha-gen3', 'Старая соперница профессора Оука.'),
   T('Lance', 'Лэнс', 'champion', 'dragon', 'Джото', 'Red/Blue (Элита), Gold/Silver (Чемпион)', 'Indigo Plateau', 149, null, 'Член Элиты в 1 поколении и чемпион во 2-м.'),
-  T('Blue', 'Блю', 'rival', 'normal', 'Канто', 'Red/Blue/Yellow, Gold/Silver, FRLG', 'Pallet Town', 18, null, 'Внук профессора Оука, первый соперник серии и чемпион Канто. В Gold/Silver — лидер стадиона Виридиана.'),
+  T('Blue', 'Блю', 'rival', 'normal', 'Канто', 'Red/Blue/Yellow, Gold/Silver, FRLG', 'Pallet Town', 0, null, 'Внук профессора Оука, первый соперник серии и чемпион Канто. В Gold/Silver — лидер стадиона Виридиана.'),
   T('Red', 'Ред', 'rival', 'electric', 'Канто', 'Red/Blue, Gold/Silver, HGSS, SM', 'Mt. Silver', 25, null, 'Герой первой игры, легендарный финальный противник на горе Сильвер.'),
   T('Professor Oak', 'Профессор Оук', 'prof', 'normal', 'Канто', 'Red/Blue/Yellow, FRLG', 'Pallet Town', 0, 'oak', 'Создатель Покедекса.'),
   // Джото
@@ -40,8 +45,8 @@ export const TRAINERS = [
   T('Professor Elm', 'Профессор Элм', 'prof', 'normal', 'Джото', 'Gold/Silver/Crystal, HGSS', 'New Bark Town', 0, 'elm', 'Изучает яйца и разведение покемонов.'),
   // Хоэнн
   T('Roxanne', 'Роксана', 'gym', 'rock', 'Хоэнн', 'RSE, ORAS', 'Rustboro City', 299),
-  T('Brawly', 'Броули', 'gym', 'fighting', 'Хоэнн', 'RSE, ORAS', 'Dewford Town', 297),
-  T('Wattson', 'Уоттсон', 'gym', 'electric', 'Хоэнн', 'RSE, ORAS', 'Mauville City', 310),
+  T('Brawly', 'Броули', 'gym', 'fighting', 'Хоэнн', 'RSE, ORAS', 'Dewford Town', 296),
+  T('Wattson', 'Уоттсон', 'gym', 'electric', 'Хоэнн', 'RSE, ORAS', 'Mauville City', 82, null, 'В Emerald его ас — Manectric.'),
   T('Flannery', 'Флэннери', 'gym', 'fire', 'Хоэнн', 'RSE, ORAS', 'Lavaridge Town', 324),
   T('Norman', 'Норман', 'gym', 'normal', 'Хоэнн', 'RSE, ORAS', 'Petalburg City', 289, null, 'Отец главного героя.'),
   T('Winona', 'Винона', 'gym', 'flying', 'Хоэнн', 'RSE, ORAS', 'Fortree City', 334),
@@ -64,7 +69,7 @@ export const TRAINERS = [
   T('Crasher Wake', 'Крашер Уэйк', 'gym', 'water', 'Синно', 'DPPt, BDSP', 'Pastoria City', 419, 'crasherwake', 'Рестлер в маске.'),
   T('Fantina', 'Фантина', 'gym', 'ghost', 'Синно', 'DPPt, BDSP', 'Hearthome City', 429),
   T('Byron', 'Байрон', 'gym', 'steel', 'Синно', 'DPPt, BDSP', 'Canalave City', 411),
-  T('Candice', 'Кэндис', 'gym', 'ice', 'Синно', 'DPPt, BDSP', 'Snowpoint City', 478),
+  T('Candice', 'Кэндис', 'gym', 'ice', 'Синно', 'DPPt, BDSP', 'Snowpoint City', 460, null, 'В Platinum её ас — Froslass.'),
   T('Volkner', 'Волкнер', 'gym', 'electric', 'Синно', 'DPPt, BDSP', 'Sunyshore City', 405, null, 'Скучает из-за отсутствия сильных соперников.'),
   T('Aaron', 'Аарон', 'e4', 'bug', 'Синно', 'DPPt, BDSP', 'Pokémon League', 452),
   T('Bertha', 'Берта', 'e4', 'ground', 'Синно', 'DPPt, BDSP', 'Pokémon League', 450),
@@ -72,7 +77,7 @@ export const TRAINERS = [
   T('Lucian', 'Люсиан', 'e4', 'psychic', 'Синно', 'DPPt, BDSP', 'Pokémon League', 437),
   T('Cynthia', 'Синтия', 'champion', 'dragon', 'Синно', 'DPPt, BDSP, BW, SM', 'Pokémon League', 445, null, 'Одна из сильнейших чемпионов серии; её Гарчомп — легенда. Археолог.'),
   T('Cyrus', 'Сайрус', 'villain', 'dark', 'Синно', 'DPPt, BDSP', 'Veilstone City', 461, null, 'Лидер Команды Галактика, хочет создать мир без эмоций.'),
-  T('Barry', 'Барри', 'rival', 'normal', 'Синно', 'DPPt, BDSP', 'Twinleaf Town', 398, null, 'Гиперактивный друг, грозится «оштрафовать» героя.'),
+  T('Barry', 'Барри', 'rival', 'normal', 'Синно', 'DPPt, BDSP', 'Twinleaf Town', 0, null, 'Гиперактивный друг, грозится «оштрафовать» героя.'),
   T('Professor Rowan', 'Профессор Роуэн', 'prof', 'normal', 'Синно', 'DPPt, BDSP', 'Sandgem Town', 0, 'rowan', 'Изучает эволюцию.'),
   // Юнова
   T('Cilan', 'Силан', 'gym', 'grass', 'Юнова', 'Black/White', 'Striaton City', 511, null, 'Один из трёх братьев; против героя выходит тот, чей тип бьёт стартера.'),
@@ -122,8 +127,8 @@ export const TRAINERS = [
   T('Ilima', 'Илима', 'captain', 'normal', 'Алола', 'SM, USUM', 'Melemele Island', 735),
   T('Lana', 'Лана', 'captain', 'water', 'Алола', 'SM, USUM', 'Akala Island', 752),
   T('Kiawe', 'Киаве', 'captain', 'fire', 'Алола', 'SM, USUM', 'Akala Island', 105),
-  T('Mallow', 'Мэллоу', 'captain', 'grass', 'Алола', 'SM, USUM', 'Akala Island', 754),
-  T('Sophocles', 'Софокл', 'captain', 'electric', 'Алола', 'SM, USUM', "Ula'ula Island", 777),
+  T('Mallow', 'Мэллоу', 'captain', 'grass', 'Алола', 'SM, USUM', 'Akala Island', 763),
+  T('Sophocles', 'Софокл', 'captain', 'electric', 'Алола', 'SM, USUM', "Ula'ula Island", 738, null, 'Фанат техники; в USUM тотем его испытания — Togedemaru.'),
   T('Acerola', 'Ацерола', 'e4', 'ghost', 'Алола', 'SM, USUM', "Ula'ula Island", 770, null, 'Капитан испытания, позже — член Элитной четвёрки.'),
   T('Mina', 'Мина', 'captain', 'fairy', 'Алола', 'Ultra Sun/Ultra Moon', 'Poni Island', 743),
   T('Kahili', 'Кахили', 'e4', 'flying', 'Алола', 'SM, USUM', 'Pokémon League', 733, null, 'Гольфистка.'),
@@ -151,20 +156,20 @@ export const TRAINERS = [
   T('Chairman Rose', 'Председатель Роуз', 'villain', 'steel', 'Галар', 'Sword/Shield', 'Wyndon', 879, 'rose', 'Глава Лиги и Macro Cosmos, пробудил Этернатуса.'),
   T('Professor Magnolia', 'Профессор Магнолия', 'prof', 'normal', 'Галар', 'Sword/Shield', 'Wedgehurst', 0, 'magnolia', 'Изучает Динамакс; её внучка Соня становится профессором.'),
   // Хисуи
-  T('Volo', 'Воло', 'villain', 'ghost', 'Хисуи', 'Legends: Arceus', 'Jubilife Village', 487, null, 'Добродушный торговец, тайно жаждущий силы Арсеуса.'),
+  T('Volo', 'Воло', 'villain', 'ghost', 'Хисуи', 'Legends: Arceus', 'Jubilife Village', 445, null, 'Добродушный торговец, тайно жаждущий силы Арсеуса.'),
   // Пальдея
   T('Katy', 'Кэти', 'gym', 'bug', 'Пальдея', 'Scarlet/Violet', 'Cortondo', 216, null, 'Кондитер; ас — Теддиурса с Тера-типом Жук.'),
   T('Brassius', 'Брассиус', 'gym', 'grass', 'Пальдея', 'Scarlet/Violet', 'Artazon', 185, null, 'Скульптор.'),
   T('Iono', 'Йоно', 'gym', 'electric', 'Пальдея', 'Scarlet/Violet', 'Levincia', 429, null, 'Стримерша, одна из самых популярных персонажей поколения.'),
   T('Kofu', 'Кофу', 'gym', 'water', 'Пальдея', 'Scarlet/Violet', 'Cascarrafa', 740, null, 'Повар, постоянно опаздывает.'),
-  T('Larry', 'Ларри', 'gym', 'normal', 'Пальдея', 'Scarlet/Violet', 'Medali', 982, null, 'Уставший офисный работник: лидер стадиона, член Элиты (летающие) и сотрудник Лиги.'),
+  T('Larry', 'Ларри', 'gym', 'normal', 'Пальдея', 'Scarlet/Violet', 'Medali', 398, null, 'Уставший офисный работник: лидер стадиона, член Элитной четвёрки (летающий тип) и сотрудник Лиги. Ас на стадионе — Staraptor с Тера-типом Нормальный.'),
   T('Ryme', 'Райм', 'gym', 'ghost', 'Пальдея', 'Scarlet/Violet', 'Montenevera', 849, null, 'Рэп-исполнительница, бой — двойной.'),
   T('Tulip', 'Тюлип', 'gym', 'psychic', 'Пальдея', 'Scarlet/Violet', 'Alfornada', 671, null, 'Визажистка.'),
-  T('Grusha', 'Груша', 'gym', 'ice', 'Пальдея', 'Scarlet/Violet', 'Glaseado', 334, null, 'Бывший сноубордист.'),
+  T('Grusha', 'Груша', 'gym', 'ice', 'Пальдея', 'Scarlet/Violet', 'Glaseado Mountain', 334, null, 'Бывший сноубордист.'),
   T('Rika', 'Рика', 'e4', 'ground', 'Пальдея', 'Scarlet/Violet', 'Pokémon League', 980),
   T('Poppy', 'Поппи', 'e4', 'steel', 'Пальдея', 'Scarlet/Violet', 'Pokémon League', 959, null, 'Самый юный член Элитной четвёрки.'),
   T('Hassel', 'Хассел', 'e4', 'dragon', 'Пальдея', 'Scarlet/Violet', 'Pokémon League', 998, null, 'Преподаватель искусства в Академии.'),
-  T('Geeta', 'Гита', 'champion', 'rock', 'Пальдея', 'Scarlet/Violet', 'Pokémon League', 983, null, 'Топ-чемпион и председатель Лиги Пальдеи.'),
+  T('Geeta', 'Гита', 'champion', 'rock', 'Пальдея', 'Scarlet/Violet', 'Pokémon League', 970, null, 'Топ-чемпион и председатель Лиги Пальдеи. Её ас — Glimmora с Тера-типом Камень.'),
   T('Nemona', 'Немона', 'rival', 'electric', 'Пальдея', 'Scarlet/Violet', 'Mesagoza', 923, 'nemona-v', 'Уже чемпион в начале игры, обожает сражаться.'),
   T('Arven', 'Арвен', 'rival', 'normal', 'Пальдея', 'Scarlet/Violet', 'Mesagoza', 943, 'arven-v', 'Сын профессора, ищет травы, чтобы вылечить своего Мабоссифа.'),
   T('Penny', 'Пенни', 'villain', 'fairy', 'Пальдея', 'Scarlet/Violet', 'Mesagoza', 700, null, 'Тайный основатель Команды Стар — «Кассиопея».'),

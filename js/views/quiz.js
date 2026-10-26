@@ -326,9 +326,11 @@ function qStats() {
 function qTrainer() {
   const T = TRAINERS.filter(t => !cfg.regions.size || cfg.regions.has(t.region));
   const list = T.length >= 4 ? T : TRAINERS;
-  const specialists = list.filter(t => ['gym', 'e4', 'kahuna', 'captain'].includes(t.role));
+  const specialists = list.filter(t => t.spec);
+  const gymLeaders = list.filter(t => t.role === 'gym');
   const kinds = ['who', 'region', 'role'];
-  if (specialists.length) kinds.push('type', 'type', 'city');
+  if (specialists.length) kinds.push('type', 'type');
+  if (gymLeaders.length) kinds.push('city');
   if (list.some(t => t.ace)) kinds.push('ace');
   const kind = pick(kinds);
   const names = (t, others) => shuffle([t, ...sample(others, 3, [t], x => x.ru)]).map(x => ({ label: `${esc(x.ru)} <span class="muted small">(${esc(x.name)})</span>`, ok: x.ru === t.ru }));
@@ -341,8 +343,8 @@ function qTrainer() {
       explain: `${esc(t.ru)} — ${typeBadge(t.type)}. ${esc(t.note)}` };
   }
   if (kind === 'city') {
-    const t = pick(specialists);
-    return { key: 'city' + t.name, html: `<div class="q-text">Кто ${ROLE_RU[t.role].toLowerCase()} — ${esc(t.city)} (${t.region})?</div><p class="muted">Подсказка: тип ${typeBadge(t.type)}</p>`,
+    const t = pick(gymLeaders);
+    return { key: 'city' + t.name, html: `<div class="q-text">Кто лидер стадиона в ${esc(t.city)} (${t.region})?</div><p class="muted">Подсказка: тип ${typeBadge(t.type)}</p>`,
       options: names(t, TRAINERS.filter(x => x.city !== t.city)), stack: true, explain: `${esc(t.ru)}. Игры: ${esc(t.games)}` };
   }
   if (kind === 'ace') {
@@ -363,7 +365,7 @@ function qTrainer() {
       options: roles.map(r => ({ label: ROLE_RU[r], ok: r === t.role })), explain: esc(t.note || `${ROLE_RU[t.role]}, ${t.games}`) };
   }
   const t = pick(list);
-  const hint = [ROLE_RU[t.role], t.region, t.role !== 'prof' ? typeBadge(t.type) : '', t.city ? esc(t.city) : ''].filter(Boolean).join(' · ');
+  const hint = [ROLE_RU[t.role], t.region, t.spec ? typeBadge(t.type) : '', t.city ? esc(t.city) : ''].filter(Boolean).join(' · ');
   return { key: 'who' + t.name, html: `${pic(t)}<div class="q-text">Кто этот тренер?</div><p>${hint}</p><p class="muted small">${esc(t.games)}</p>`,
     options: names(t, TRAINERS), stack: true, explain: esc(t.note) };
 }

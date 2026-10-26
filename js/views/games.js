@@ -76,7 +76,7 @@ function renderGen(app, n) {
   ${regionTrainers.length ? `<h2>Тренеры региона</h2>
   <div class="grid cols-4">${regionTrainers.map(t => `
     <div class="card small"><b>${esc(t.ru)}</b> <span class="muted">(${esc(t.name)})</span><br>
-    <span class="muted">${ROLE_RU[t.role]}</span> ${t.role === 'prof' ? '' : typeBadge(t.type)}</div>`).join('')}</div>` : ''}
+    <span class="muted">${ROLE_RU[t.role]}</span> ${t.spec ? typeBadge(t.type) : ''}</div>`).join('')}</div>` : ''}
 
   <div class="prevnext" style="margin-top:20px">
     ${n > 1 ? `<a class="btn" href="#/games/${n - 1}">← Поколение ${n - 1}</a>` : '<span></span>'}

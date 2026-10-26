@@ -31,7 +31,7 @@ export function render(app) {
           <div style="flex:1;min-width:0">
             <h3>${esc(t.ru)} <span class="muted small">${esc(t.name)}</span></h3>
             <div class="role">${ROLE_RU[t.role]} · ${t.region}${t.city ? ' · ' + esc(t.city) : ''}</div>
-            <div style="margin-top:4px">${t.role === 'prof' ? '' : typeBadge(t.type)}</div>
+            <div style="margin-top:4px">${t.spec ? typeBadge(t.type) : ''}</div>
           </div>
           ${ace ? `<a href="#/pokemon/${ace.id}" title="Фирменный покемон: ${esc(ace.n)}"><img src="${sprite(ace.id)}" alt="${esc(ace.n)}" width="56" height="56" loading="lazy"></a>` : ''}
         </div>

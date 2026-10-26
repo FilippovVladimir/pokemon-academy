@@ -8,25 +8,32 @@ import { store } from '../store.js';
 const ROUND = 10;
 
 // Каждый квиз — генератор вопросов. Вопрос: { html, options?: [{label, ok}], typePick?, input?, after? }
-const QUIZZES = {
+export const QUIZZES = {
   name: { icon: '❓', title: 'Кто этот покемон?', desc: 'Угадай покемона по силуэту. Можно выбирать из вариантов или вписывать имя.', settings: ['gens', 'mode', 'sil'], gen: qName },
   type: { icon: '🎨', title: 'Угадай тип', desc: 'Выбери все типы показанного покемона (один или два).', settings: ['gens'], gen: qType },
   weak: { icon: '💥', title: 'Слабости покемона', desc: 'Какой тип атаки будет супер-эффективен против покемона?', settings: ['gens'], gen: qWeak },
   matchup: { icon: '⚔️', title: 'Тип против типа', desc: 'Какой множитель урона у атаки типа X по типу Y?', settings: ['level'], gen: qMatchup },
   gen: { icon: '🗺️', title: 'Какое поколение?', desc: 'Из какого поколения и региона этот покемон?', settings: [], gen: qGen },
   evo: { icon: '🧬', title: 'Эволюции', desc: 'В кого эволюционирует покемон — или из кого?', settings: ['gens'], gen: qEvo },
-  stats: { icon: '📊', title: 'Кто сильнее?', desc: 'У кого из двух покемонов выше выбранная базовая характеристика?', settings: ['gens'], gen: qStats },
+  stats: { icon: '📊', title: 'Кто сильнее?', desc: 'У кого из двух покемонов выше выбранная базовая характеристика?', settings: ['gens'], gen: qStats, noStudy: true },
   trainers: { icon: '🧢', title: 'Тренеры', desc: 'Лидеры стадионов, чемпионы и злодеи: имя, тип, регион, фирменный покемон.', settings: ['regions'], gen: qTrainer },
   games: { icon: '🎮', title: 'Игры серии', desc: 'Регионы, годы выхода, стартеры и легендарные талисманы игр.', settings: [], gen: qGames },
 };
 
-let cfg = { gens: new Set(), mode: 'choice', sil: true, level: 'easy', regions: new Set() };
+let cfg = { gens: new Set(), mode: 'choice', sil: true, level: 'easy', regions: new Set(), study: 'random' };
+
+const STUDY = {
+  random: ['🎲 Свободный', 'Случайные вопросы, могут повторяться — просто для удовольствия.'],
+  new: ['🆕 Только новое', 'Вопросы, на которые ты ещё ни разу не ответил правильно.'],
+  learn: ['📚 Учить', `Сначала ошибки, потом новое. Ошибка вернётся через пару вопросов. Вопрос выучен после ${store.LEARNED} верных ответов подряд.`],
+};
 
 export function render(app, [idRaw]) {
   const [id, qs] = (idRaw || '').split('?');
   if (qs) {
-    const g = new URLSearchParams(qs).get('gen');
-    if (g) cfg.gens = new Set([+g]);
+    const p = new URLSearchParams(qs);
+    if (p.get('gen')) cfg.gens = new Set([+p.get('gen')]);
+    if (STUDY[p.get('study')]) cfg.study = p.get('study');
   }
   if (!id || !QUIZZES[id]) return renderHub(app);
   return renderSetup(app, id);
@@ -35,11 +42,13 @@ export function render(app, [idRaw]) {
 function renderHub(app) {
   app.innerHTML = `
   <h1>Квизы</h1>
-  <p class="muted">Раунд — ${ROUND} вопросов. Лучшие результаты сохраняются на этом устройстве.</p>
+  <p class="muted">Раунд — ${ROUND} вопросов. В каждом квизе можно играть для удовольствия, проходить только новое или учить с повторением ошибок.
+    ${store.user() ? '' : '<a href="#/profile">Войди</a>, чтобы прогресс сохранялся в облаке.'}</p>
   <div class="grid cols-3">${Object.entries(QUIZZES).map(([id, q]) => {
-    const s = store.quizStats(id);
+    const s = store.quizStats(id), it = store.itemSummary(id);
     return `<a class="card tile" href="#/quiz/${id}"><div class="ico">${q.icon}</div><h3>${q.title}</h3><p>${q.desc}</p>
-      <p class="small" style="margin-top:8px">${s.played ? `🏅 Рекорд: ${s.best}/${ROUND} · точность ${Math.round(s.correct / s.answered * 100)}%` : '<span class="muted">Ещё не пройден</span>'}</p></a>`;
+      <p class="small" style="margin-top:8px">${s.played ? `🏅 Рекорд: ${s.best}/${ROUND} · точность ${Math.round(s.correct / s.answered * 100)}%` : '<span class="muted">Ещё не пройден</span>'}
+      ${!q.noStudy && it.seen ? `<br>📚 Выучено: ${it.learned}${it.review ? ` · на повторение: ${it.review}` : ''}` : ''}</p></a>`;
   }).join('')}</div>`;
 }
 
@@ -50,6 +59,10 @@ function renderSetup(app, id) {
   <a class="back" href="#/quiz">← Все квизы</a>
   <div class="quiz-box card quiz-settings">
     <div style="text-align:center"><div style="font-size:2.4rem">${q.icon}</div><h1>${q.title}</h1><p class="muted">${q.desc}</p></div>
+    ${q.noStudy ? '' : `<label>Как играем</label>
+      <div class="chips" id="sStudy">${Object.entries(STUDY).map(([k, [t]]) => `<button class="chip ${cfg.study === k ? 'on' : ''}" data-v="${k}">${t}</button>`).join('')}</div>
+      <p class="small muted" id="studyHint" style="margin:6px 0 0">${STUDY[cfg.study][1]}</p>
+      ${(() => { const it = store.itemSummary(id); return it.seen ? `<p class="small" style="margin:6px 0 0">Выучено: <b>${it.learned}</b> · на повторение: <b>${it.review}</b> · встречено: ${it.seen}</p>` : ''; })()}`}
     ${set.includes('gens') ? `<label>Поколения <span class="muted small">(ничего не выбрано = все)</span></label>
       <div class="chips" id="sGens">${GENERATIONS.map(g => `<button class="chip ${cfg.gens.has(g.gen) ? 'on' : ''}" data-v="${g.gen}">${g.gen} · ${g.region}</button>`).join('')}</div>` : ''}
     ${set.includes('regions') ? `<label>Регионы <span class="muted small">(ничего не выбрано = все)</span></label>
@@ -82,6 +95,7 @@ function renderSetup(app, id) {
     fn(b.dataset.v); $$(sel + ' .chip').forEach(c => c.classList.toggle('on', c === b));
   });
   multi('#sGens', 'gens'); multi('#sRegions', 'regions');
+  single('#sStudy', v => { cfg.study = v; $('#studyHint').textContent = STUDY[v][1]; });
   single('#sMode', v => cfg.mode = v); single('#sSil', v => cfg.sil = v === '1'); single('#sLevel', v => cfg.level = v);
   $('#start').onclick = () => runQuiz(app, id);
 }
@@ -89,14 +103,56 @@ function renderSetup(app, id) {
 // ---------- Движок ----------
 function runQuiz(app, id) {
   const q = QUIZZES[id];
-  let i = 0, score = 0, streak = 0, bestStreak = 0;
+  const study = q.noStudy ? 'random' : cfg.study;
+  let i = 0, score = 0, streak = 0, bestStreak = 0, ranOut = false;
   const used = new Set();
+  const retry = []; // ошибки, которые вернутся в этом же раунде (режим «Учить»)
+
+  // Приоритет вопроса для выбранного режима (больше — важнее)
+  const priority = key => {
+    const it = store.item(id, key);
+    if (study === 'new') return it?.c ? 0 : 10;
+    if (study === 'learn') {
+      if (!it) return 5;                        // новый
+      if (it.s >= store.LEARNED) return 0;      // уже выучен
+      return it.w > 0 ? 10 : 7;                 // ошибался раньше / видел, но не закрепил
+    }
+    return 1;
+  };
+  const pickQuestion = () => {
+    // «Учить»: чаще всего берём конкретный вопрос из очереди повторения
+    if (study === 'learn' && Math.random() < 0.75) {
+      for (const k of store.reviewKeys(id)) {
+        if (used.has(k)) continue;
+        const c = q.gen(k);
+        if (c) return c;
+      }
+    }
+    let best = null, bestScore = -1;
+    for (let k = 0; k < (study === 'random' ? 30 : 80); k++) {
+      const c = q.gen();
+      if (!c || (c.key != null && used.has(String(c.key)))) continue;
+      const sc = priority(c.key) + Math.random();
+      if (sc > bestScore) { best = c; bestScore = sc; }
+      if (study === 'random') break;
+    }
+    if (study === 'new' && bestScore < 10) ranOut = true;
+    while (!best) best = q.gen();
+    return best;
+  };
 
   const next = () => {
     if (i >= ROUND) return finish();
-    let question, guard = 0;
-    do { question = q.gen(); } while (question.key && used.has(question.key) && guard++ < 30);
-    if (question.key) used.add(question.key);
+    const r = retry.findIndex(x => x.at <= i);
+    let question;
+    if (r >= 0) {
+      question = retry.splice(r, 1)[0].q;
+      if (question.options) question.options = shuffle(question.options);
+      question.isRetry = true;
+    } else {
+      question = pickQuestion();
+      if (question.key != null) used.add(String(question.key));
+    }
     i++;
     show(question);
   };
@@ -107,9 +163,10 @@ function runQuiz(app, id) {
     <div class="quiz-box">
       <div class="quiz-top">
         <a href="#/quiz/${id}" class="small">✕ Выйти</a>
-        <div class="scorebar"><span>Вопрос ${i}/${ROUND}</span><span>✅ ${score}</span><span>🔥 ${streak}</span></div>
+        <div class="scorebar"><span>${STUDY[study][0].split(' ')[0]} ${i}/${ROUND}</span><span>✅ ${score}</span><span>🔥 ${streak}</span></div>
       </div>
       <div class="card pop" id="qcard">
+        ${qq.isRetry ? '<div class="tag" style="margin-bottom:6px">🔁 Повторяем ошибку</div>' : ''}
         ${qq.html}
         <div id="answers"></div>
         <div class="feedback" id="fb"></div>
@@ -119,6 +176,8 @@ function runQuiz(app, id) {
     const done = (ok, msg) => {
       if (ok) { score++; streak++; bestStreak = Math.max(bestStreak, streak); } else streak = 0;
       store.recordAnswer(id, ok);
+      if (qq.key != null && !q.noStudy) store.recordItem(id, String(qq.key), ok);
+      if (!ok && study === 'learn' && !qq.isRetry && i + 2 < ROUND) retry.push({ at: i + 2, q: qq });
       qq.onResult?.(ok);
       const fb = $('#fb'); fb.className = 'feedback ' + (ok ? 'ok' : 'no');
       fb.innerHTML = (ok ? '✅ Верно! ' : '❌ Неверно. ') + (msg || '');
@@ -145,6 +204,8 @@ function runQuiz(app, id) {
       <div class="result-big">${score} / ${ROUND}</div>
       <p>${mood}</p>
       <p class="muted small">Лучшая серия в раунде: ${bestStreak} · Рекорд: ${s.best}/${ROUND} · Сыграно раундов: ${s.played}</p>
+      ${q.noStudy ? '' : (() => { const it = store.itemSummary(id); return `<p class="small">📚 Выучено: <b>${it.learned}</b> · на повторение: <b>${it.review}</b></p>`; })()}
+      ${ranOut ? '<p class="small">🎉 Новые вопросы с этими настройками почти закончились — попробуй режим «Учить» или другие поколения.</p>' : ''}
       <div class="row" style="justify-content:center;margin-top:12px">
         <button class="btn primary" id="again">Ещё раунд</button>
         <a class="btn" href="#/quiz">Другие квизы</a>
@@ -219,8 +280,12 @@ const monImg = (p, sil = false) => `<img class="q-img ${sil ? 'sil' : ''}" id="q
 const linkTo = p => `<a href="#/pokemon/${p.id}" target="_blank">${esc(p.n)}</a>`;
 
 // ---------- Генераторы ----------
-function qName() {
-  const P = pool(), p = pick(P);
+// Каждый генератор принимает необязательный ключ want — тогда строит именно этот вопрос (или null, если он не подходит под фильтры)
+const byKey = (P, want) => want == null ? pick(P) : P.find(x => x.id === +want);
+
+function qName(want) {
+  const P = pool(), p = byKey(P, want);
+  if (!p) return null;
   const base = {
     key: p.id,
     html: `<div class="q-text">Кто этот покемон?</div>${monImg(p, cfg.sil)}`,
@@ -235,18 +300,20 @@ function qName() {
   return { ...base, options: shuffle([{ label: esc(p.n), ok: true }, ...wrong.map(w => ({ label: esc(w.n), ok: false }))]) };
 }
 
-function qType() {
-  const p = pick(pool());
+function qType(want) {
+  const p = byKey(pool(), want);
+  if (!p) return null;
   return {
     key: p.id, typePick: p.t,
     html: `<div class="q-text">Какого типа ${esc(p.n)}?</div>${monImg(p)}<p class="muted small">Выбери 1 или 2 типа</p>`,
   };
 }
 
-function qWeak() {
-  const P = pool();
-  let p, prof, strong;
-  do { p = pick(P); prof = defenseProfile(p.t); strong = TYPES.filter(t => prof[t] >= 2); } while (!strong.length);
+function qWeak(want) {
+  const p = byKey(pool(), want);
+  if (!p) return null;
+  const prof = defenseProfile(p.t), strong = TYPES.filter(t => prof[t] >= 2);
+  if (!strong.length) return null;
   const right = pick(strong);
   const wrong = sample(TYPES.filter(t => prof[t] < 2), 3, [right]);
   const all = TYPES.filter(t => prof[t] >= 2);
@@ -258,21 +325,23 @@ function qWeak() {
   };
 }
 
-function qMatchup() {
-  const a = pick(TYPES);
-  const def = cfg.level === 'hard' ? sample(TYPES, 2) : [pick(TYPES)];
+function qMatchup(want) {
+  let a, def;
+  if (want != null) { const [x, y] = want.split('>'); a = x; def = (y || '').split('+'); if (!EFF[a] || !def.every(t => EFF[t])) return null; }
+  else { a = pick(TYPES); def = cfg.level === 'hard' ? sample(TYPES, 2) : [pick(TYPES)]; }
   const m = mult(a, def);
   const opts = cfg.level === 'hard' ? [0, 0.25, 0.5, 1, 2, 4] : [0, 0.5, 1, 2];
   return {
-    key: a + def.join(),
+    key: `${a}>${def.join('+')}`,
     html: `<div class="q-text">Атака ${typeBadge(a)} по покемону типа ${typeBadges(def)}</div><p class="muted">Какой множитель урона?</p>`,
     options: opts.map(o => ({ label: '×' + fmtMult(o), ok: o === m })),
     explain: def.length > 1 ? `${TYPE_RU[a]} → ${TYPE_RU[def[0]]} ×${fmtMult(EFF[a][def[0]])}, → ${TYPE_RU[def[1]]} ×${fmtMult(EFF[a][def[1]])}. Итого ×${fmtMult(m)}` : '',
   };
 }
 
-function qGen() {
-  const p = pick(DEX.list);
+function qGen(want) {
+  const p = byKey(DEX.list, want);
+  if (!p) return null;
   const g = GENERATIONS[p.gen - 1];
   const wrong = sample(GENERATIONS, 3, [g], x => x.gen);
   return {
@@ -283,9 +352,11 @@ function qGen() {
   };
 }
 
-function qEvo() {
+function qEvo(want) {
   const P = pool().filter(p => p.ev && get(p.ev));
-  const p = pick(P.length ? P : DEX.list.filter(x => x.ev)), from = get(p.ev);
+  const p = byKey(P.length ? P : DEX.list.filter(x => x.ev), want);
+  if (!p) return null;
+  const from = get(p.ev);
   const forward = Math.random() < .5;
   const ask = forward ? from : p, ans = forward ? p : from;
   const decoys = sample(DEX.list.filter(x => x.id !== ans.id && x.ch !== p.ch && x.t.some(t => ans.t.includes(t))), 3, [], x => x.id);
@@ -323,7 +394,7 @@ function qStats() {
   };
 }
 
-function qTrainer() {
+function qTrainer(want) {
   const T = TRAINERS.filter(t => !cfg.regions.size || cfg.regions.has(t.region));
   const list = T.length >= 4 ? T : TRAINERS;
   const specialists = list.filter(t => t.spec);
@@ -332,79 +403,86 @@ function qTrainer() {
   if (specialists.length) kinds.push('type', 'type');
   if (gymLeaders.length) kinds.push('city');
   if (list.some(t => t.ace)) kinds.push('ace');
-  const kind = pick(kinds);
+  const forKind = k => k === 'type' ? specialists : k === 'city' ? gymLeaders : k === 'ace' ? list.filter(x => x.ace) : list;
+  let kind, t;
+  if (want != null) {
+    const i = want.indexOf(':'); kind = want.slice(0, i);
+    t = forKind(kind).find(x => x.name === want.slice(i + 1));
+    if (!t) return null;
+  } else { kind = pick(kinds); t = pick(forKind(kind)); }
+  const key = `${kind}:${t.name}`;
   const names = (t, others) => shuffle([t, ...sample(others, 3, [t], x => x.ru)]).map(x => ({ label: `${esc(x.ru)} <span class="muted small">(${esc(x.name)})</span>`, ok: x.ru === t.ru }));
   const pic = t => `<div class="trainer-q"><img src="${trainerSprite(t.sprite)}" alt="" onerror="this.remove()"></div>`;
 
   if (kind === 'type') {
-    const t = pick(specialists);
-    return { key: 'type' + t.name, html: `${pic(t)}<div class="q-text">На каком типе специализируется ${esc(t.ru)}?</div><p class="muted">${ROLE_RU[t.role]} · ${t.region}</p>`,
+    return { key, html: `${pic(t)}<div class="q-text">На каком типе специализируется ${esc(t.ru)}?</div><p class="muted">${ROLE_RU[t.role]} · ${t.region}</p>`,
       options: shuffle([t.type, ...sample(TYPES, 3, [t.type])]).map(x => ({ label: typeBadge(x), ok: x === t.type })),
       explain: `${esc(t.ru)} — ${typeBadge(t.type)}. ${esc(t.note)}` };
   }
   if (kind === 'city') {
-    const t = pick(gymLeaders);
-    return { key: 'city' + t.name, html: `<div class="q-text">Кто лидер стадиона в ${esc(t.city)} (${t.region})?</div><p class="muted">Подсказка: тип ${typeBadge(t.type)}</p>`,
+    return { key, html: `<div class="q-text">Кто лидер стадиона в ${esc(t.city)} (${t.region})?</div><p class="muted">Подсказка: тип ${typeBadge(t.type)}</p>`,
       options: names(t, TRAINERS.filter(x => x.city !== t.city)), stack: true, explain: `${esc(t.ru)}. Игры: ${esc(t.games)}` };
   }
   if (kind === 'ace') {
-    const t = pick(list.filter(x => x.ace)), p = get(t.ace);
-    return { key: 'ace' + t.name, html: `<div class="q-text">Чей это фирменный покемон?</div>${monImg(p)}<p class="muted">${esc(p.n)}</p>`,
+    const p = get(t.ace);
+    return { key, html: `<div class="q-text">Чей это фирменный покемон?</div>${monImg(p)}<p class="muted">${esc(p.n)}</p>`,
       options: names(t, TRAINERS.filter(x => x.ace !== t.ace)), stack: true, explain: `${esc(p.n)} — ас тренера ${esc(t.ru)} (${ROLE_RU[t.role]}, ${t.region}).` };
   }
   if (kind === 'region') {
-    const t = pick(list);
     const regs = shuffle([t.region, ...sample(REGIONS_ORDER, 3, [t.region])]);
-    return { key: 'reg' + t.name, html: `${pic(t)}<div class="q-text">Из какого региона ${esc(t.ru)}?</div><p class="muted">${ROLE_RU[t.role]}</p>`,
+    return { key, html: `${pic(t)}<div class="q-text">Из какого региона ${esc(t.ru)}?</div><p class="muted">${ROLE_RU[t.role]}</p>`,
       options: regs.map(r => ({ label: r, ok: r === t.region })), explain: `${esc(t.ru)} — ${t.region}. Игры: ${esc(t.games)}` };
   }
   if (kind === 'role') {
-    const t = pick(list);
     const roles = shuffle([t.role, ...sample(Object.keys(ROLE_RU), 3, [t.role])]);
-    return { key: 'role' + t.name, html: `${pic(t)}<div class="q-text">Кто такой(ая) ${esc(t.ru)} (${t.region})?</div>`,
+    return { key, html: `${pic(t)}<div class="q-text">Кто такой(ая) ${esc(t.ru)} (${t.region})?</div>`,
       options: roles.map(r => ({ label: ROLE_RU[r], ok: r === t.role })), explain: esc(t.note || `${ROLE_RU[t.role]}, ${t.games}`) };
   }
-  const t = pick(list);
   const hint = [ROLE_RU[t.role], t.region, t.spec ? typeBadge(t.type) : '', t.city ? esc(t.city) : ''].filter(Boolean).join(' · ');
-  return { key: 'who' + t.name, html: `${pic(t)}<div class="q-text">Кто этот тренер?</div><p>${hint}</p><p class="muted small">${esc(t.games)}</p>`,
+  return { key, html: `${pic(t)}<div class="q-text">Кто этот тренер?</div><p>${hint}</p><p class="muted small">${esc(t.games)}</p>`,
     options: names(t, TRAINERS), stack: true, explain: esc(t.note) };
 }
 
-function qGames() {
-  const kind = pick(['region', 'region', 'year', 'starters', 'mascot', 'gen', 'feature']);
-  const gm = pick(ALL_GAMES);
+function qGames(want) {
+  let kind = pick(['region', 'region', 'year', 'starters', 'mascot', 'gen', 'feature']), id = null;
+  if (want != null) { const i = want.indexOf(':'); kind = want.slice(0, i); id = want.slice(i + 1); }
+  const gm = id != null && !['starters', 'feature'].includes(kind) ? ALL_GAMES.find(x => x.title === id) : pick(ALL_GAMES);
+  if (!gm) return null;
   const strip = s => esc(s.replace('Pokémon ', ''));
   if (kind === 'region') {
     const g = GENERATIONS[gm.gen - 1];
-    return { key: 'r' + gm.title, html: `<div class="q-text">В каком регионе происходит ${strip(gm.title)}?</div>`,
+    return { key: 'region:' + gm.title, html: `<div class="q-text">В каком регионе происходит ${strip(gm.title)}?</div>`,
       options: shuffle([g, ...sample(GENERATIONS, 3, [g], x => x.gen)]).map(x => ({ label: x.region, ok: x === g })),
       explain: `${strip(gm.title)} (${gm.year}) — ${g.region}, поколение ${g.gen}.` };
   }
   if (kind === 'year') {
     const years = shuffle([gm.year, ...sample([...new Set(ALL_GAMES.map(x => x.year))], 3, [gm.year])]);
-    return { key: 'y' + gm.title, html: `<div class="q-text">В каком году вышла ${strip(gm.title)}?</div>`,
+    return { key: 'year:' + gm.title, html: `<div class="q-text">В каком году вышла ${strip(gm.title)}?</div>`,
       options: years.sort().map(y => ({ label: String(y), ok: y === gm.year })), explain: `${gm.year}, ${esc(gm.platform)}` };
   }
   if (kind === 'starters') {
-    const g = pick(GENERATIONS);
-    return { key: 's' + g.gen, html: `<div class="q-text">Чьи это стартовые покемоны?</div><div class="evo" style="justify-content:center">${g.starters.map(id => img(id, '', '')).join('')}</div>`,
+    const g = id != null ? GENERATIONS[+id - 1] : pick(GENERATIONS);
+    if (!g) return null;
+    return { key: 'starters:' + g.gen, html: `<div class="q-text">Чьи это стартовые покемоны?</div><div class="evo" style="justify-content:center">${g.starters.map(id => img(id, '', '')).join('')}</div>`,
       options: shuffle([g, ...sample(GENERATIONS, 3, [g], x => x.gen)]).map(x => ({ label: `${x.region} (${x.gen} пок.)`, ok: x === g })),
       explain: g.starters.map(id => esc(get(id).n)).join(', ') };
   }
   if (kind === 'mascot') {
     const p = get(gm.mascot[0]);
     const others = sample(ALL_GAMES.filter(x => !x.mascot.includes(p.id)), 3, [], x => x.title);
-    return { key: 'm' + gm.title, html: `<div class="q-text">Талисман какой игры этот покемон?</div>${monImg(p)}<p class="muted">${esc(p.n)}</p>`,
+    return { key: 'mascot:' + gm.title, html: `<div class="q-text">Талисман какой игры этот покемон?</div>${monImg(p)}<p class="muted">${esc(p.n)}</p>`,
       options: shuffle([gm, ...others]).map(x => ({ label: strip(x.title), ok: x === gm })), stack: true,
       explain: `${esc(p.n)} — ключевой покемон ${strip(gm.title)}.` };
   }
   if (kind === 'feature') {
-    const g = pick(GENERATIONS), f = pick(g.features);
-    return { key: 'f' + f, html: `<div class="q-text">В каком поколении появилось: «${esc(f)}»?</div>`,
+    const g = id != null ? GENERATIONS.find(x => x.features.includes(id)) : pick(GENERATIONS);
+    if (!g) return null;
+    const f = id ?? pick(g.features);
+    return { key: 'feature:' + f, html: `<div class="q-text">В каком поколении появилось: «${esc(f)}»?</div>`,
       options: shuffle([g, ...sample(GENERATIONS, 3, [g], x => x.gen)]).map(x => ({ label: `${x.gen} · ${x.region}`, ok: x === g })),
       explain: `Поколение ${g.gen}: ${g.games.map(x => strip(x.title)).join(', ')}` };
   }
-  return { key: 'g' + gm.title, html: `<div class="q-text">К какому поколению относится ${strip(gm.title)}?</div>`,
+  return { key: 'gen:' + gm.title, html: `<div class="q-text">К какому поколению относится ${strip(gm.title)}?</div>`,
     options: [gm.gen, ...sample([1, 2, 3, 4, 5, 6, 7, 8, 9], 3, [gm.gen])].sort((a, b) => a - b)
       .map(n => ({ label: `Поколение ${n}`, ok: n === gm.gen })),
     explain: `${strip(gm.title)} — поколение ${gm.gen} (${gm.region}).` };

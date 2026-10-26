@@ -11,9 +11,11 @@ import * as team from './views/team.js';
 import * as guides from './views/guides.js';
 import * as progress from './views/progress.js';
 import * as more from './views/more.js';
+import * as profile from './views/profile.js';
+import { store } from './store.js';
 
 const ROUTES = {
-  '': home, pokedex, pokemon, types, games, trainers, quiz, team, guides, progress, more,
+  '': home, pokedex, pokemon, types, games, trainers, quiz, team, guides, progress, more, profile,
 };
 
 const app = $('#app');
@@ -25,7 +27,7 @@ async function route() {
   const navKey = name || 'home';
   $$('[data-nav]').forEach(a => a.classList.toggle('active', a.dataset.nav === navKey ||
     (navKey === 'pokemon' && a.dataset.nav === 'pokedex') ||
-    (['trainers', 'types', 'team', 'guides', 'progress'].includes(navKey) && a.dataset.nav === 'more' )));
+    (['trainers', 'types', 'team', 'guides', 'progress', 'profile'].includes(navKey) && a.dataset.nav === 'more' )));
   $('#nav').classList.remove('open');
   $('#menuBtn').setAttribute('aria-expanded', 'false');
 
@@ -45,6 +47,20 @@ $('#menuBtn').addEventListener('click', () => {
   const open = $('#nav').classList.toggle('open');
   $('#menuBtn').setAttribute('aria-expanded', String(open));
 });
+
+// Кнопка профиля в шапке; при входе/выходе перерисовываем страницу с новым прогрессом
+let lastUser = store.user();
+const userBtn = $('#userBtn');
+const drawUser = () => {
+  userBtn.hidden = !store.cloudEnabled;
+  const u = store.user(), s = store.sync().status;
+  userBtn.textContent = u ? `${s === 'error' ? '⚠️' : s === 'saving' || s === 'loading' ? '⏳' : '👤'} ${u}` : '👤 Войти';
+};
+store.onChange(() => {
+  drawUser();
+  if (store.user() !== lastUser) { lastUser = store.user(); route(); }
+});
+drawUser();
 
 window.addEventListener('hashchange', route);
 route();

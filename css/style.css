@@ -63,7 +63,7 @@ main.container { padding-top: 20px; padding-bottom: 40px; min-height: 70vh; outl
 
 .tabbar { display: none; }
 
-@media (max-width: 900px) {
+@media (max-width: 1100px) {
   .menu-btn { display: block; }
   .nav {
     display: none; position: absolute; top: 100%; left: 0; right: 0; flex-direction: column;
@@ -318,3 +318,12 @@ table.cov { border-collapse: collapse; width: 100%; font-size: .85rem; }
   .chips.scroll::-webkit-scrollbar { display: none; }
   .chips.scroll .chip { flex-shrink: 0; }
 }
+
+.user-btn {
+  margin-left: auto; color: #fff; background: rgba(0,0,0,.18); padding: 6px 12px; border-radius: 999px;
+  font-weight: 700; font-size: .9rem; white-space: nowrap; max-width: 46vw; flex-shrink: 0; overflow: hidden; text-overflow: ellipsis;
+}
+.user-btn:hover { text-decoration: none; background: rgba(0,0,0,.28); }
+.user-btn[hidden] { display: none; }
+.user-btn:not([hidden]) + .menu-btn, .user-btn:not([hidden]) + .menu-btn + .nav { margin-left: 0; }
+@media (min-width: 1101px) { .user-btn { order: 3; margin-left: 8px; } .nav { margin-left: auto; } }
